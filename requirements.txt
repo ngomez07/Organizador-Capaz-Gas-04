@@ -1,0 +1,6 @@
+# Dependencias del proyecto Organizador Capaz Gas-04
+# Añade aquí los paquetes necesarios
+
+# Ejemplo:
+# requests>=2.28.0
+# python-dotenv>=0.20.0
