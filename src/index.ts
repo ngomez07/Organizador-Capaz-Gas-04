@@ -11,7 +11,7 @@ import { AnimationConfig } from './config/AnimationConfig';
 
 async function main(): Promise<void> {
   console.log('╔══════════════════════════════════════════╗');
-  console.log('║   Food Layer Animation Generator  v1.0   ║');
+  console.log('║   Food Layer Animation Generator  v2.0   ║');
   console.log('╚══════════════════════════════════════════╝\n');
 
   const {
@@ -19,77 +19,88 @@ async function main(): Promise<void> {
     internalSamples,
     inputDir,
     outputDir,
-    gifFilename,
     gifDelayCentisecs,
   } = AnimationConfig;
 
-  // ── 1. Load layers ──────────────────────────────────────────────────────────
-  console.log('① Loading layers...');
-  const layers = await LayerLoader.loadLayers(inputDir);
-  const { width, height } = layers[0];
-  console.log(`   Canvas: ${width}×${height}  |  Layers: ${layers.length}\n`);
-
-  // ── 2. Visual centroids ─────────────────────────────────────────────────────
-  console.log('② Computing visual centroids...');
-  const centroids = layers.map((layer) => {
-    const c = VisualCentroidAnalyzer.compute(layer.pixels, layer.width, layer.height);
-    console.log(`   [${layer.index}] ${layer.filename}: (${c.x.toFixed(1)}, ${c.y.toFixed(1)})`);
-    return c;
-  });
-  console.log();
-
-  // ── 3. Motion profiles ──────────────────────────────────────────────────────
-  console.log('③ Building harmonic motion profiles...');
-  const profiles = layers.map((layer, i) => {
-    const p = LayerMotionProfileFactory.create(i, layers.length, centroids[i]);
-    console.log(
-      `   [${i}] depthScale=${p.depthScale.toFixed(2)}  ` +
-      `ampY=±${p.ampY.toFixed(2)}px  ampX=±${p.ampX.toFixed(2)}px  ampR=±${p.ampR.toFixed(2)}°`
-    );
-    return p;
-  });
-  console.log();
-
-  // ── 4. Loop validation ──────────────────────────────────────────────────────
-  console.log('④ Validating loop...');
-  LoopValidator.validate(profiles);
-  LoopValidator.reportLastFrameGap(profiles, outputFrames);
-
-  // ── 5. Render frames ────────────────────────────────────────────────────────
-  const frameTs = HarmonicAnimator.generateFrameTs(internalSamples, outputFrames);
-  console.log(
-    `⑤ Rendering ${outputFrames} frames` +
-    ` (sampled from ${internalSamples} internal poses)...`
-  );
-
-  const renderer = new CompositionRenderer(width, height);
   const framesDir = path.join(outputDir, 'frames');
-  const renderedFrames: Buffer[] = [];
+  const gifDir    = path.join(outputDir, 'gif');
 
-  for (let f = 0; f < outputFrames; f++) {
-    const t = frameTs[f];
-    const transforms = profiles.map((p) => HarmonicAnimator.computeTransform(p, t));
-    const pixels = renderer.renderFrame(layers, transforms);
-    renderedFrames.push(pixels);
+  // ── 1. Detect layer groups ──────────────────────────────────────────────────
+  console.log('① Detecting layer groups...');
+  const layerGroups = await LayerLoader.loadLayerGroups(inputDir);
+  console.log(`\n   Found ${layerGroups.size} group(s): ${[...layerGroups.keys()].join(', ')}\n`);
 
-    const framePath = await FrameExporter.exportFrame(pixels, width, height, framesDir, f);
-    process.stdout.write(
-      `\r   Frame ${String(f + 1).padStart(2)}/${outputFrames}  →  ${path.basename(framePath)}`
-    );
+  // ── 2. Process each group ───────────────────────────────────────────────────
+  const gifPaths: string[] = [];
+
+  for (const [groupName, layers] of layerGroups) {
+    const bar = '─'.repeat(42);
+    console.log(`\n┌${bar}┐`);
+    console.log(`│  Group: ${groupName.padEnd(35)}│`);
+    console.log(`└${bar}┘\n`);
+
+    const { width, height } = layers[0];
+    console.log(`   Canvas: ${width}×${height}  |  Layers: ${layers.length}\n`);
+
+    // Centroids
+    console.log('   Computing centroids...');
+    const centroids = layers.map((layer) => {
+      const c = VisualCentroidAnalyzer.compute(layer.pixels, layer.width, layer.height);
+      console.log(`   [${layer.index}] ${layer.filename}: (${c.x.toFixed(1)}, ${c.y.toFixed(1)})`);
+      return c;
+    });
+    console.log();
+
+    // Motion profiles
+    console.log('   Building motion profiles...');
+    const profiles = layers.map((layer, i) => {
+      const p = LayerMotionProfileFactory.create(i, layers.length, centroids[i]);
+      console.log(
+        `   [${i}] depthScale=${p.depthScale.toFixed(2)}  ` +
+        `ampY=±${p.ampY.toFixed(2)}px  ampX=±${p.ampX.toFixed(2)}px  ampR=±${p.ampR.toFixed(2)}°`
+      );
+      return p;
+    });
+    console.log();
+
+    // Loop validation
+    LoopValidator.validate(profiles);
+    LoopValidator.reportLastFrameGap(profiles, outputFrames);
+
+    // Render frames
+    const frameTs = HarmonicAnimator.generateFrameTs(internalSamples, outputFrames);
+    console.log(`   Rendering ${outputFrames} frames...`);
+
+    const renderer      = new CompositionRenderer(width, height);
+    const framePrefix   = groupName.toLowerCase();
+    const renderedFrames: Buffer[] = [];
+
+    for (let f = 0; f < outputFrames; f++) {
+      const t          = frameTs[f];
+      const transforms = profiles.map((p) => HarmonicAnimator.computeTransform(p, t));
+      const pixels     = renderer.renderFrame(layers, transforms);
+      renderedFrames.push(pixels);
+
+      await FrameExporter.exportFrame(pixels, width, height, framesDir, f, framePrefix);
+      process.stdout.write(`\r   Frame ${String(f + 1).padStart(2)}/${outputFrames}`);
+    }
+    console.log('\n');
+
+    // Export GIF
+    const gifFilename = `${framePrefix}_animado.gif`;
+    const gifPath     = path.join(gifDir, gifFilename);
+    console.log(`   Encoding GIF → ${gifFilename}`);
+    await GifExporter.exportGif(renderedFrames, width, height, gifDelayCentisecs, gifPath);
+    console.log(`   ✓ Done\n`);
+    gifPaths.push(gifPath);
   }
-  console.log('\n');
-
-  // ── 6. Export GIF ───────────────────────────────────────────────────────────
-  console.log('⑥ Encoding animated GIF...');
-  const gifPath = path.join(outputDir, 'gif', gifFilename);
-  await GifExporter.exportGif(renderedFrames, width, height, gifDelayCentisecs, gifPath);
 
   // ── Done ────────────────────────────────────────────────────────────────────
   console.log('\n╔══════════════════════════════════════════╗');
   console.log('║                 Complete!                ║');
   console.log('╚══════════════════════════════════════════╝');
   console.log(`  Frames : ${framesDir}`);
-  console.log(`  GIF    : ${gifPath}`);
+  for (const p of gifPaths) console.log(`  GIF    : ${p}`);
 }
 
 main().catch((err: unknown) => {

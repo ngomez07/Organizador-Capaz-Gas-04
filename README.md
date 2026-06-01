@@ -1,8 +1,8 @@
 # AutomatAnim — Generador de Animaciones Flotantes por Capas
 
-Este programa toma las capas de una imagen (guardadas como archivos PNG separados) y genera automáticamente una animación donde cada capa se mueve de forma independiente, creando un efecto de **flotación orgánica** en loop perfecto.
+Este programa toma las capas de una o varias imágenes (guardadas como archivos PNG separados) y genera automáticamente una animación donde cada capa se mueve de forma independiente, creando un efecto de **flotación orgánica** en loop perfecto.
 
-**Resultado:** un GIF animado listo para usar + los frames individuales en PNG.
+**Resultado:** un GIF animado por cada plato + todos los frames individuales en PNG.
 
 ---
 
@@ -61,10 +61,38 @@ Esto descarga todas las librerías que necesita el proyecto (se guardan en la ca
 
 Coloca tus archivos PNG (con fondo transparente) dentro de la carpeta **`Capas/`**.
 
-- Deben estar nombrados en orden, por ejemplo: `MI_IMAGEN_CAPA_01.png`, `MI_IMAGEN_CAPA_02.png`, etc.
-- Todas las capas deben tener **exactamente el mismo tamaño** (mismo ancho y alto).
+El nombre de cada archivo debe seguir este formato exacto:
+```
+NOMBREPLATO_CAPA_01.png
+NOMBREPLATO_CAPA_02.png
+NOMBREPLATO_CAPA_03.png
+...
+```
+
+**Ejemplo con los platos actuales:**
+```
+Capas/
+  HABICHUELAS_CAPA_01.png
+  HABICHUELAS_CAPA_02.png
+  HABICHUELAS_CAPA_03.png
+  HABICHUELAS_CAPA_04.png
+  HABICHUELAS_CAPA_05.png
+  PASTEL_CAPA_01.png
+  PASTEL_CAPA_02.png
+  PASTEL_CAPA_03.png
+  PASTEL_CAPA_04.png
+  SANCOCHO_CAPA_01.png
+  SANCOCHO_CAPA_02.png
+  SANCOCHO_CAPA_03.png
+  SANCOCHO_CAPA_04.png
+  SANCOCHO_CAPA_05.png
+```
+
+**Reglas importantes:**
+- El programa agrupa automáticamente los archivos por el nombre antes de `_CAPA_`. No necesitas configurar nada.
+- Todas las capas de un mismo plato deben tener **exactamente el mismo tamaño** (mismo ancho y alto).
 - Deben tener **fondo transparente** (formato PNG con canal alpha).
-- El orden importa: la capa `01` es la más profunda (el fondo), la última es la más superficial (la de arriba).
+- El orden importa: la capa `_01` es la más profunda (el fondo), la última va arriba.
 
 ### Paso 2 — Corre el programa
 
@@ -75,26 +103,37 @@ npm run dev
 ```
 
 El programa va a:
-1. Leer todas las capas de la carpeta `Capas/`
-2. Calcular el movimiento de cada capa
-3. Renderizar todos los frames
-4. Guardar el resultado en la carpeta `output/`
+1. Detectar automáticamente los grupos de capas en `Capas/`
+2. Por cada grupo: calcular el movimiento, renderizar los frames y generar el GIF
+3. Guardar todo el resultado en la carpeta `output/`
 
 ### Paso 3 — Encuentra tu resultado
 
 ```
 output/
   frames/
-    frame_000.png       ← Frame 1 de la animación (PNG con transparencia)
-    frame_001.png
-    ...
-    frame_059.png       ← Frame 60 (último)
+    habichuelas_000.png … habichuelas_023.png   ← Frames de Habichuelas (PNG con transparencia)
+    pastel_000.png      … pastel_023.png         ← Frames de Pastel
+    sancocho_000.png    … sancocho_023.png        ← Frames de Sancocho
   gif/
-    plato_animado.gif   ← El GIF animado en loop infinito
+    habichuelas_animado.gif   ← GIF en loop infinito
+    pastel_animado.gif
+    sancocho_animado.gif
 ```
 
-- Los **PNGs individuales** tienen transparencia completa y son ideales para edición posterior o importar a After Effects, Photoshop, etc.
-- El **GIF** está listo para usar en redes sociales, web o presentaciones.
+- Los **PNGs individuales** tienen transparencia completa. Ideales para edición posterior o importar a After Effects, Photoshop, etc.
+- Los **GIFs** están listos para usar en redes sociales, web o presentaciones.
+
+---
+
+## Agregar un nuevo plato
+
+No se necesita tocar el código. Solo:
+
+1. Agrega los nuevos PNGs a la carpeta `Capas/` siguiendo el patrón de nombre: `MIPLATО_CAPA_01.png`, `MIPLATO_CAPA_02.png`, etc.
+2. Corre `npm run dev`.
+
+El programa detecta el nuevo grupo automáticamente y genera su propio GIF.
 
 ---
 
@@ -107,8 +146,8 @@ Todos los parámetros de la animación están en un solo archivo:
 Puedes abrirlo con cualquier editor de texto (Notepad, VS Code, etc.) y modificar los valores:
 
 ```typescript
-outputFrames: 60,          // Cantidad de frames del GIF (más = animación más suave)
-internalSamples: 120,      // Poses internas de cálculo (dejar siempre el doble de outputFrames)
+outputFrames: 24,          // Cantidad de frames del GIF (más = animación más suave, más tiempo de proceso)
+internalSamples: 48,       // Poses internas de cálculo (dejar siempre el doble de outputFrames)
 
 maxHorizontalOffset: 4,    // Qué tanto se mueven las capas de lado a lado (en píxeles)
 maxVerticalOffset: 6,      // Qué tanto suben y bajan las capas (en píxeles)
@@ -122,10 +161,9 @@ gifDelayCentisecs: 8,      // Velocidad del GIF: 8 = 80ms por frame ≈ 12 cuadr
 
 inputDir: 'Capas',         // Carpeta donde están tus PNGs de entrada
 outputDir: 'output',       // Carpeta donde se guarda el resultado
-gifFilename: 'plato_animado.gif',  // Nombre del archivo GIF de salida
 ```
 
-Después de cambiar cualquier valor, vuelve a correr `npm run dev` para regenerar la animación.
+Después de cambiar cualquier valor, vuelve a correr `npm run dev` para regenerar las animaciones.
 
 ---
 
@@ -134,8 +172,8 @@ Después de cambiar cualquier valor, vuelve a correr `npm run dev` para regenera
 | Comando | Qué hace |
 |---------|----------|
 | `npm run dev` | Corre el programa directamente (recomendado para uso normal) |
-| `npm run build` | Compila el código TypeScript a JavaScript (necesario para producción) |
-| `npm start` | Corre la versión compilada (usa después de `npm run build`) |
+| `npm run build` | Compila el código TypeScript a JavaScript (para producción) |
+| `npm start` | Corre la versión compilada (usar después de `npm run build`) |
 
 ---
 
@@ -147,18 +185,7 @@ El programa genera movimiento **orgánico y no sincronizado** usando matemática
 - **Tres tipos de movimiento por capa**: arriba-abajo, lado a lado, y rotación.
 - **Las capas superiores se mueven más**: simulan ser más "livianas" (efecto de profundidad).
 - **El loop es perfecto**: matemáticamente el último frame conecta exactamente con el primero, sin saltos.
-
----
-
-## Usar con un proyecto diferente
-
-El sistema es completamente reutilizable. Para usarlo con otras imágenes:
-
-1. Borra o reemplaza el contenido de la carpeta `Capas/` con tus nuevos PNGs.
-2. Si quieres cambiar el nombre del GIF de salida, edita `gifFilename` en `AnimationConfig.ts`.
-3. Corre `npm run dev`.
-
-El programa detecta automáticamente cuántas capas hay y calcula todos los parámetros de movimiento para ellas.
+- **Grupos automáticos**: el programa detecta los platos por el prefijo del nombre del archivo, sin configuración manual.
 
 ---
 
@@ -179,5 +206,11 @@ El programa detecta automáticamente cuántas capas hay y calcula todos los par�
 **El movimiento es exagerado**
 → Baja esos mismos valores.
 
+**Solo se genera un GIF en vez de uno por plato**
+→ Verifica que los nombres de los archivos en `Capas/` siguen el patrón `NOMBRE_CAPA_01.png`. El guion bajo y la palabra `CAPA` deben estar presentes.
+
 **Las capas no aparecen en el orden correcto**
-→ Verifica que los nombres de los archivos estén bien numerados y ordenados alfabéticamente. La capa `_01` va al fondo, la última va arriba.
+→ Verifica que los números al final estén bien ordenados (`_01`, `_02`, `_03`...). La capa `_01` va al fondo, la última va arriba.
+
+**Los frames del output se sobreescriben entre platos**
+→ Esto no debería pasar: cada plato usa su propio prefijo (`habichuelas_000.png`, `pastel_000.png`, etc.). Si ves archivos con nombre genérico `frame_000.png`, son de una corrida anterior — puedes borrarlos.

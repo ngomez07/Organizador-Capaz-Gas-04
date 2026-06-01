@@ -12,18 +12,36 @@ export interface LayerData {
 }
 
 export class LayerLoader {
-  static async loadLayers(dir: string): Promise<LayerData[]> {
-    const files = fs
+  /** Groups all PNGs in `dir` by the prefix before `_CAPA_NN.png` and loads each group. */
+  static async loadLayerGroups(dir: string): Promise<Map<string, LayerData[]>> {
+    const allFiles = fs
       .readdirSync(dir)
       .filter((f) => f.toLowerCase().endsWith('.png') && !f.startsWith('.'))
       .sort();
 
-    if (files.length === 0) {
-      throw new Error(`No PNG files found in directory: ${dir}`);
+    const groupMap = new Map<string, string[]>();
+    for (const file of allFiles) {
+      const match = file.match(/^(.+)_CAPA_\d+\.png$/i);
+      if (!match) continue;
+      const group = match[1];
+      if (!groupMap.has(group)) groupMap.set(group, []);
+      groupMap.get(group)!.push(file);
     }
 
-    console.log(`Found ${files.length} layer(s): ${files.join(', ')}`);
+    if (groupMap.size === 0) {
+      throw new Error(
+        `No grouped layers found in "${dir}". Files must match the pattern NAME_CAPA_NN.png`
+      );
+    }
 
+    const result = new Map<string, LayerData[]>();
+    for (const [groupName, files] of groupMap) {
+      result.set(groupName, await LayerLoader.loadFiles(dir, files));
+    }
+    return result;
+  }
+
+  private static async loadFiles(dir: string, files: string[]): Promise<LayerData[]> {
     const layers: LayerData[] = [];
 
     for (let i = 0; i < files.length; i++) {
@@ -35,15 +53,8 @@ export class LayerLoader {
         .raw()
         .toBuffer({ resolveWithObject: true });
 
-      layers.push({
-        index: i,
-        filename,
-        width: info.width,
-        height: info.height,
-        pixels: data,
-      });
-
-      console.log(`  [${i}] ${filename} — ${info.width}×${info.height}`);
+      layers.push({ index: i, filename, width: info.width, height: info.height, pixels: data });
+      console.log(`   [${i}] ${filename} — ${info.width}×${info.height}`);
     }
 
     // Validate all layers share the same canvas

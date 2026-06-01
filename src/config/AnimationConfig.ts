@@ -1,8 +1,8 @@
 export const AnimationConfig = {
   /** Final exported frame count */
-  outputFrames: 60,
+  outputFrames: 24,
   /** Internal oversampling resolution for smoother pose selection */
-  internalSamples: 120,
+  internalSamples: 48,
 
   /** Max horizontal translation per layer (pixels) */
   maxHorizontalOffset: 4,
@@ -21,5 +21,4 @@ export const AnimationConfig = {
   /** Paths */
   inputDir: 'Capas',
   outputDir: 'output',
-  gifFilename: 'plato_animado.gif',
 } as const;

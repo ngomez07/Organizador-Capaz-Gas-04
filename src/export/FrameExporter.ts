@@ -8,11 +8,12 @@ export class FrameExporter {
     width: number,
     height: number,
     outputDir: string,
-    frameIndex: number
+    frameIndex: number,
+    prefix: string = 'frame'
   ): Promise<string> {
     fs.mkdirSync(outputDir, { recursive: true });
 
-    const filename = `frame_${String(frameIndex).padStart(3, '0')}.png`;
+    const filename = `${prefix}_${String(frameIndex).padStart(3, '0')}.png`;
     const filepath = path.join(outputDir, filename);
 
     await sharp(pixels, { raw: { width, height, channels: 4 } })
