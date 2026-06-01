@@ -146,8 +146,8 @@ Todos los parámetros de la animación están en un solo archivo:
 Puedes abrirlo con cualquier editor de texto (Notepad, VS Code, etc.) y modificar los valores:
 
 ```typescript
-outputFrames: 24,          // Cantidad de frames del GIF (más = animación más suave, más tiempo de proceso)
-internalSamples: 48,       // Poses internas de cálculo (dejar siempre el doble de outputFrames)
+outputFrames: 60,          // Cantidad de frames del GIF (más = animación más suave, más tiempo de proceso)
+internalSamples: 120,      // Poses internas de cálculo (dejar siempre el doble de outputFrames)
 
 maxHorizontalOffset: 4,    // Qué tanto se mueven las capas de lado a lado (en píxeles)
 maxVerticalOffset: 6,      // Qué tanto suben y bajan las capas (en píxeles)
@@ -156,7 +156,7 @@ maxRotation: 1.5,          // Qué tanto rotan las capas (en grados)
 depthScaleMin: 1.0,        // Intensidad de movimiento en la capa más profunda (base = 1.0)
 depthScaleMax: 1.45,       // Intensidad de movimiento en la capa superior (más movimiento = más "liviana")
 
-gifDelayCentisecs: 8,      // Velocidad del GIF: 8 = 80ms por frame ≈ 12 cuadros por segundo
+gifDelayCentisecs: 3,      // Velocidad del GIF: 3 = 30ms por frame ≈ 33 cuadros por segundo → loop ~1.8s
                            // (número más bajo = más rápido, más alto = más lento)
 
 inputDir: 'Capas',         // Carpeta donde están tus PNGs de entrada

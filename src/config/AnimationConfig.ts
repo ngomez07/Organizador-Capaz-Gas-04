@@ -1,8 +1,8 @@
 export const AnimationConfig = {
   /** Final exported frame count */
-  outputFrames: 24,
+  outputFrames: 60,
   /** Internal oversampling resolution for smoother pose selection */
-  internalSamples: 48,
+  internalSamples: 120,
 
   /** Max horizontal translation per layer (pixels) */
   maxHorizontalOffset: 4,
@@ -16,7 +16,7 @@ export const AnimationConfig = {
   depthScaleMax: 1.45,
 
   /** GIF frame delay in centiseconds (8 = 80ms ≈ 12fps, 3-second loop at 24 frames) */
-  gifDelayCentisecs: 8,
+  gifDelayCentisecs: 3,
 
   /** Paths */
   inputDir: 'Capas',
