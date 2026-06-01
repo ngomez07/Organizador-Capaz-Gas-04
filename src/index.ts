@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import * as path from 'path';
 import { LayerLoader } from './loader/LayerLoader';
 import { VisualCentroidAnalyzer } from './analysis/VisualCentroid';
@@ -24,6 +25,10 @@ async function main(): Promise<void> {
 
   const framesDir = path.join(outputDir, 'frames');
   const gifDir    = path.join(outputDir, 'gif');
+
+  // Clean output folders so stale files never mix with new ones
+  fs.rmSync(framesDir, { recursive: true, force: true });
+  fs.rmSync(gifDir,    { recursive: true, force: true });
 
   // ── 1. Detect layer groups ──────────────────────────────────────────────────
   console.log('① Detecting layer groups...');
