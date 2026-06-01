@@ -1,52 +1,183 @@
-# Organizador Capaz Gas-04
+# AutomatAnim — Generador de Animaciones Flotantes por Capas
 
-Proyecto de Python para organización de capas y automatización.
+Este programa toma las capas de una imagen (guardadas como archivos PNG separados) y genera automáticamente una animación donde cada capa se mueve de forma independiente, creando un efecto de **flotación orgánica** en loop perfecto.
 
-## Requisitos
+**Resultado:** un GIF animado listo para usar + los frames individuales en PNG.
 
-- Python 3.8 o superior
-- Virtual Environment (venv)
+---
 
-## Instalación
+## ¿En qué está hecho este proyecto?
 
-### 1. Crear y activar el entorno virtual
+Está hecho en **TypeScript**, que es un lenguaje de programación que corre sobre **Node.js** (una plataforma que permite ejecutar código JavaScript/TypeScript en tu computador, fuera del navegador).
 
-**En Windows (CMD/PowerShell):**
-```bash
-python -m venv venv
-venv\Scripts\activate
+No necesitas saber programar para usarlo. Solo necesitas instalar dos herramientas y seguir los pasos de abajo.
+
+---
+
+## Requisitos previos
+
+Antes de correr el proyecto por primera vez, necesitas tener instalado:
+
+### 1. Node.js (versión 18 o superior)
+
+Node.js es la plataforma que ejecuta el programa.
+
+- Descárgalo desde: **https://nodejs.org**
+- Elige la versión marcada como **"LTS"** (la más estable)
+- Instálalo como cualquier programa de Windows (siguiente, siguiente, finalizar)
+
+Para verificar que quedó bien instalado, abre una terminal (PowerShell o CMD) y escribe:
+```
+node --version
+```
+Debería mostrarte algo como `v20.11.0`. Si aparece un número, está bien.
+
+### 2. npm (viene incluido con Node.js)
+
+`npm` es el gestor de paquetes de Node.js. Se instala automáticamente junto con Node.js. Puedes verificarlo con:
+```
+npm --version
 ```
 
-**En Linux/macOS:**
-```bash
-python -m venv venv
-source venv/bin/activate
+---
+
+## Instalación (solo la primera vez)
+
+1. Abre una terminal dentro de la carpeta del proyecto.
+   - En Windows: navega hasta la carpeta, haz clic derecho en un espacio vacío y elige **"Abrir en Terminal"** o **"Abrir PowerShell aquí"**.
+
+2. Escribe el siguiente comando y presiona Enter:
+```
+npm install
 ```
 
-### 2. Instalar dependencias
+Esto descarga todas las librerías que necesita el proyecto (se guardan en la carpeta `node_modules/`). Puede tardar unos segundos.
 
-```bash
-pip install -r requirements.txt
+---
+
+## Cómo usar el proyecto
+
+### Paso 1 — Prepara tus capas
+
+Coloca tus archivos PNG (con fondo transparente) dentro de la carpeta **`Capas/`**.
+
+- Deben estar nombrados en orden, por ejemplo: `MI_IMAGEN_CAPA_01.png`, `MI_IMAGEN_CAPA_02.png`, etc.
+- Todas las capas deben tener **exactamente el mismo tamaño** (mismo ancho y alto).
+- Deben tener **fondo transparente** (formato PNG con canal alpha).
+- El orden importa: la capa `01` es la más profunda (el fondo), la última es la más superficial (la de arriba).
+
+### Paso 2 — Corre el programa
+
+Abre la terminal en la carpeta del proyecto y ejecuta:
+
+```
+npm run dev
 ```
 
-## Estructura del proyecto
+El programa va a:
+1. Leer todas las capas de la carpeta `Capas/`
+2. Calcular el movimiento de cada capa
+3. Renderizar todos los frames
+4. Guardar el resultado en la carpeta `output/`
+
+### Paso 3 — Encuentra tu resultado
 
 ```
-.
-├── Capas/                 # Módulo de gestión de capas
-├── venv/                  # Entorno virtual
-├── requirements.txt       # Dependencias del proyecto
-└── README.md             # Este archivo
+output/
+  frames/
+    frame_000.png       ← Frame 1 de la animación (PNG con transparencia)
+    frame_001.png
+    ...
+    frame_059.png       ← Frame 60 (último)
+  gif/
+    plato_animado.gif   ← El GIF animado en loop infinito
 ```
 
-## Uso
+- Los **PNGs individuales** tienen transparencia completa y son ideales para edición posterior o importar a After Effects, Photoshop, etc.
+- El **GIF** está listo para usar en redes sociales, web o presentaciones.
 
-[Documentación de uso]
+---
 
-## Contribuciones
+## Configuración — cómo ajustar la animación
 
-Las contribuciones son bienvenidas. Por favor, abre un issue o pull request.
+Todos los parámetros de la animación están en un solo archivo:
 
-## Licencia
+**`src/config/AnimationConfig.ts`**
 
-[Especificar licencia]
+Puedes abrirlo con cualquier editor de texto (Notepad, VS Code, etc.) y modificar los valores:
+
+```typescript
+outputFrames: 60,          // Cantidad de frames del GIF (más = animación más suave)
+internalSamples: 120,      // Poses internas de cálculo (dejar siempre el doble de outputFrames)
+
+maxHorizontalOffset: 4,    // Qué tanto se mueven las capas de lado a lado (en píxeles)
+maxVerticalOffset: 6,      // Qué tanto suben y bajan las capas (en píxeles)
+maxRotation: 1.5,          // Qué tanto rotan las capas (en grados)
+
+depthScaleMin: 1.0,        // Intensidad de movimiento en la capa más profunda (base = 1.0)
+depthScaleMax: 1.45,       // Intensidad de movimiento en la capa superior (más movimiento = más "liviana")
+
+gifDelayCentisecs: 8,      // Velocidad del GIF: 8 = 80ms por frame ≈ 12 cuadros por segundo
+                           // (número más bajo = más rápido, más alto = más lento)
+
+inputDir: 'Capas',         // Carpeta donde están tus PNGs de entrada
+outputDir: 'output',       // Carpeta donde se guarda el resultado
+gifFilename: 'plato_animado.gif',  // Nombre del archivo GIF de salida
+```
+
+Después de cambiar cualquier valor, vuelve a correr `npm run dev` para regenerar la animación.
+
+---
+
+## Comandos disponibles
+
+| Comando | Qué hace |
+|---------|----------|
+| `npm run dev` | Corre el programa directamente (recomendado para uso normal) |
+| `npm run build` | Compila el código TypeScript a JavaScript (necesario para producción) |
+| `npm start` | Corre la versión compilada (usa después de `npm run build`) |
+
+---
+
+## Cómo funciona (explicación simple)
+
+El programa genera movimiento **orgánico y no sincronizado** usando matemática de ondas (sinusoides):
+
+- **Cada capa se mueve de forma independiente**: no todas suben y bajan al mismo tiempo.
+- **Tres tipos de movimiento por capa**: arriba-abajo, lado a lado, y rotación.
+- **Las capas superiores se mueven más**: simulan ser más "livianas" (efecto de profundidad).
+- **El loop es perfecto**: matemáticamente el último frame conecta exactamente con el primero, sin saltos.
+
+---
+
+## Usar con un proyecto diferente
+
+El sistema es completamente reutilizable. Para usarlo con otras imágenes:
+
+1. Borra o reemplaza el contenido de la carpeta `Capas/` con tus nuevos PNGs.
+2. Si quieres cambiar el nombre del GIF de salida, edita `gifFilename` en `AnimationConfig.ts`.
+3. Corre `npm run dev`.
+
+El programa detecta automáticamente cuántas capas hay y calcula todos los parámetros de movimiento para ellas.
+
+---
+
+## Solución de problemas frecuentes
+
+**"npm no se reconoce como comando"**
+→ Node.js no está instalado correctamente. Reinstálalo desde https://nodejs.org y reinicia la terminal.
+
+**"Cannot find module" o errores al correr**
+→ Probablemente falta correr `npm install`. Ejecuta ese comando primero.
+
+**El GIF sale muy rápido o muy lento**
+→ Ajusta `gifDelayCentisecs` en la configuración. Prueba con `6` (más rápido) o `12` (más lento).
+
+**El movimiento apenas se nota**
+→ Sube los valores de `maxVerticalOffset`, `maxHorizontalOffset` y `maxRotation` en la configuración.
+
+**El movimiento es exagerado**
+→ Baja esos mismos valores.
+
+**Las capas no aparecen en el orden correcto**
+→ Verifica que los nombres de los archivos estén bien numerados y ordenados alfabéticamente. La capa `_01` va al fondo, la última va arriba.

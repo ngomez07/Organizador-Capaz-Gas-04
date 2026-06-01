@@ -1,3 +1,16 @@
+# Node.js
+node_modules/
+dist/
+output/
+
+# macOS metadata
+__MACOSX/
+.DS_Store
+._*
+
+# Claude Code
+.claude/
+
 # Virtual Environment
 venv/
 env/

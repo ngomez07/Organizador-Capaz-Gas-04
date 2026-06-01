@@ -1,0 +1,21 @@
+{
+  "name": "food-layer-animator",
+  "version": "1.0.0",
+  "description": "Procedural floating-food animation generator from transparent PNG layers",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "clean": "rmdir /s /q dist 2>nul & mkdir dist"
+  },
+  "dependencies": {
+    "sharp": "^0.33.5",
+    "gif-encoder-2": "^1.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.0"
+  }
+}
